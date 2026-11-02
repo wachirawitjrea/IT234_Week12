@@ -1,6 +1,6 @@
 {
-  "shopName": "กาเเฟอีน",
-  "owner": "วชิรวิทย์ เจิมรัตนรุ่งเรือง",
+  "shopName": "COFFEFE",
+  "owner": "Wachirawit",
   "studentId": "1680702824",
   "ownerPhone": "081-234-7846",
   "products": [
@@ -30,3 +30,9 @@
     }
   ]
 }
+      "id": 4,
+      "name": "เค้กนมสด",
+      "price": 68,
+      "emoji": "🍰",
+      "available": false,
+      "tags": ["เบเกอรี่"]
