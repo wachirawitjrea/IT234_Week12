@@ -1,3 +1,4 @@
+
 {
   "shopName": "COFFEFE",
   "owner": "Wachirawit",
@@ -27,12 +28,14 @@
       "emoji": "🥐",
       "available": false,
       "tags": ["เบเกอรี่"]
-    }
-  ]
-}
+    },
+    {
       "id": 4,
       "name": "เค้กนมสด",
       "price": 68,
       "emoji": "🍰",
       "available": false,
       "tags": ["เบเกอรี่"]
+    }
+  ]
+}
