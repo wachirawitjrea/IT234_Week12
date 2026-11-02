@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ร้านของฉัน</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F3F5FB;
+      --ink: #1B1F3B;
+      --ink-soft: #565C80;
+      --cobalt: #3A4FD9;
+      --cobalt-soft: #E3E7FD;
+      --latte: #B08463;
+      --line: #DCE0EE;
+      --card: #FFFFFF;
+      --panel: #1B1F3B;
+      --panel-line: #2E3460;
+      --j-key: #9FB4FF;
+      --j-str: #F2C98A;
+      --j-num: #8EE0C1;
+      --j-bool: #FF9DB4;
+      --j-punc: #7C82AA;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Anuphan", "Leelawadee UI", Tahoma, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    button, input { font: inherit; color: inherit; }
+    :focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      min-height: 100vh;
+    }
+
+    /* ---------- ฝั่งเมนู ---------- */
+    .menu-side { padding: 48px 48px 64px; }
+    header h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    header .owner { color: var(--ink-soft); margin: 0 0 28px; }
+
+    .tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .search {
+      flex: 1 1 220px;
+      max-width: 320px;
+      border: 1.5px solid var(--line);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 9px 16px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border: 1.5px solid var(--line);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: .92rem;
+    }
+    .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .count { color: var(--ink-soft); font-size: .9rem; margin: 0 0 20px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 16px;
+    }
+    .item {
+      background: var(--card);
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      padding: 20px;
+      cursor: default;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .item.is-active { border-color: var(--cobalt); box-shadow: 0 0 0 4px var(--cobalt-soft); }
+    .bubble {
+      width: 72px; height: 72px;
+      border-radius: 24px;
+      display: grid; place-items: center;
+      font-size: 2.4rem;
+      margin-bottom: 14px;
+    }
+    .item h2 { font-size: 1.2rem; margin: 0 0 2px; font-weight: 600; }
+    .price { font-size: 1.35rem; font-weight: 700; color: var(--latte); }
+    .price small { font-size: .85rem; font-weight: 500; }
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .tag { font-size: .8rem; color: var(--ink-soft); background: var(--paper); border-radius: 8px; padding: 2px 8px; }
+    .item.soldout .bubble { filter: grayscale(1); opacity: .5; }
+    .item.soldout h2, .item.soldout .price { color: #9AA0B4; }
+    .soldout-label { font-size: .8rem; font-weight: 600; color: #B4405A; background: #FCE8EC; border-radius: 8px; padding: 2px 8px; }
+    .empty { grid-column: 1 / -1; color: var(--ink-soft); padding: 24px 0; }
+
+    /* ---------- ฝั่งข้อมูล JSON ---------- */
+    .data-side {
+      background: var(--panel);
+      color: #E6E8F5;
+      position: sticky; top: 0;
+      height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .data-head { padding: 28px 24px 16px; border-bottom: 1px solid var(--panel-line); }
+    .data-head h2 { margin: 0 0 4px; font-size: 1.05rem; font-weight: 600; }
+    .data-head p { margin: 0; font-size: .88rem; color: #A9AED0; }
+    .json {
+      flex: 1;
+      overflow: auto;
+      padding: 16px 12px 32px;
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .doc { border-radius: 10px; padding: 6px 12px; margin: 4px 0; white-space: pre; transition: background .15s; }
+    .doc.is-active { background: rgba(159, 180, 255, .16); box-shadow: inset 3px 0 0 var(--j-key); }
+    .doc.is-hidden { opacity: .3; }
+    .k { color: var(--j-key); } .s { color: var(--j-str); } .n { color: var(--j-num); }
+    .b { color: var(--j-bool); } .p { color: var(--j-punc); }
+    .toggle { display: none; }
+
+    footer { margin-top: 40px; font-size: .85rem; color: var(--ink-soft); }
+    footer a { color: inherit; }
+
+    .error {
+      grid-column: 1 / -1;
+      background: #FFF;
+      border: 2px solid #E05267;
+      border-radius: 16px;
+      padding: 20px 22px;
+      line-height: 1.75;
+    }
+    .error b:first-child { color: #B4405A; font-size: 1.1rem; }
+
+    /* ---------- มือถือ ---------- */
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .menu-side { padding: 28px 16px 40px; }
+      .data-side { position: static; height: auto; }
+      .toggle {
+        display: block; width: 100%;
+        background: var(--panel); color: #fff;
+        border: 0; padding: 14px 16px; text-align: left; cursor: pointer;
+      }
+      .data-side.is-closed .data-head, .data-side.is-closed .json { display: none; }
+      .json { max-height: 70vh; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <main class="menu-side">
+      <header>
+        <h1 id="shop-name">กำลังโหลด…</h1>
+        <p class="owner" id="owner"></p>
+      </header>
+
+      <div class="tools">
+        <input class="search" id="search" type="search" placeholder="ค้นหาเมนู" aria-label="ค้นหาเมนู">
+        <div class="chips" id="chips" role="group" aria-label="กรองตามแท็ก"></div>
+      </div>
+      <p class="count" id="count"></p>
+
+      <div class="grid" id="menu"></div>
+
+      <footer>
+        ทุกอย่างในหน้านี้สร้างจากไฟล์ <a href="data.json" target="_blank">data.json</a> · IT234 Introduction to Database
+      </footer>
+    </main>
+
+    <aside class="data-side is-closed" id="data-side">
+      <button class="toggle" id="toggle" aria-expanded="false">ดูข้อมูลเบื้องหลังหน้านี้ (data.json)</button>
+      <div class="data-head">
+        <h2>ข้อมูลเบื้องหลังหน้านี้</h2>
+        <p>แต่ละเมนูคือ document 1 ก้อนใน products · ชี้หรือแตะการ์ด แล้วดูว่าข้อมูลก้อนไหนสว่างขึ้น</p>
+      </div>
+      <div class="json" id="json"></div>
+    </aside>
+  </div>
+
+  <script>
+    // ===================================================
+    //  นักศึกษาไม่ต้องแก้ไฟล์นี้ ให้แก้แค่ data.json
+    // ===================================================
+
+    var allProducts = [];
+    var activeTag = null;
+    var bubbleColors = ["#E3E7FD", "#FDEBD8", "#DDF4EA", "#FCE4EC", "#EFE5FB", "#E2F2FB"];
+
+    // 1) ไปขอไฟล์ data.json มา  2) แปลงเป็น JSON  3) แสดงผล
+    // ใส่เวลาต่อท้าย เพื่อให้ได้ data.json เวอร์ชันล่าสุดเสมอ ไม่ใช่ตัวเก่าที่เบราว์เซอร์จำไว้
+    fetch("data.json?v=" + Date.now(), { cache: "no-store" })
+      .then(function (response) {
+        if (!response.ok) throw { kind: "notfound" };
+        return response.text();
+      })
+      .then(function (text) {
+        if (text.trim().charAt(0) === "<") throw { kind: "notfound" };
+        try { return JSON.parse(text); }
+        catch (e) { throw { kind: "syntax", message: e.message }; }
+      })
+      .then(function (data) { showShop(data); })
+      .catch(function (err) { showError(err); });
+
+    function showShop(data) {
+      document.title = data.shopName;
+      document.getElementById("shop-name").textContent = data.shopName;
+      document.getElementById("owner").textContent = "เจ้าของร้าน " + data.owner;
+      allProducts = data.products;
+      buildChips();
+      buildJson();
+      render();
+    }
+
+    // ปุ่มกรองสร้างจาก "tags" ใน JSON อัตโนมัติ
+    function buildChips() {
+      var tags = [];
+      allProducts.forEach(function (p) {
+        (p.tags || []).forEach(function (t) { if (tags.indexOf(t) === -1) tags.push(t); });
+      });
+      var box = document.getElementById("chips");
+      box.innerHTML = "";
+      ["ทั้งหมด"].concat(tags).forEach(function (t) {
+        var b = document.createElement("button");
+        b.className = "chip";
+        b.textContent = t;
+        b.setAttribute("aria-pressed", t === "ทั้งหมด" ? "true" : "false");
+        b.onclick = function () {
+          activeTag = t === "ทั้งหมด" ? null : t;
+          box.querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", c === b ? "true" : "false"); });
+          render();
+        };
+        box.appendChild(b);
+      });
+    }
+
+    function matches(p) {
+      var q = document.getElementById("search").value.trim().toLowerCase();
+      var okTag = !activeTag || (p.tags || []).indexOf(activeTag) !== -1;
+      var okText = !q || String(p.name).toLowerCase().indexOf(q) !== -1;
+      return okTag && okText;
+    }
+
+    function render() {
+      var menu = document.getElementById("menu");
+      menu.innerHTML = "";
+      var shown = 0;
+      allProducts.forEach(function (item, i) {
+        var visible = matches(item);
+        var doc = document.getElementById("doc-" + i);
+        if (doc) doc.classList.toggle("is-hidden", !visible);
+        if (!visible) return;
+        shown++;
+
+        var card = document.createElement("article");
+        card.className = "item" + (item.available ? "" : " soldout");
+        card.tabIndex = 0;
+        var tags = (item.tags || []).map(function (t) { return '<span class="tag">#' + escapeHtml(t) + "</span>"; }).join("");
+        card.innerHTML =
+          '<div class="bubble" style="background:' + bubbleColors[i % bubbleColors.length] + '">' + escapeHtml(item.emoji || "🛍️") + "</div>" +
+          "<h2>" + escapeHtml(item.name) + "</h2>" +
+          '<div class="price">' + escapeHtml(item.price) + " <small>บาท</small></div>" +
+          '<div class="meta">' + (item.available ? "" : '<span class="soldout-label">หมดแล้ว</span>') + tags + "</div>";
+
+        ["mouseenter", "focus"].forEach(function (ev) { card.addEventListener(ev, function () { highlight(i, card); }); });
+        ["mouseleave", "blur"].forEach(function (ev) { card.addEventListener(ev, function () { highlight(-1); }); });
+        menu.appendChild(card);
+      });
+      document.getElementById("count").textContent = "แสดง " + shown + " จาก " + allProducts.length + " เมนู";
+      if (shown === 0) menu.innerHTML = '<p class="empty">ไม่พบเมนูที่ตรงกับคำค้น ลองพิมพ์คำอื่น หรือกด “ทั้งหมด”</p>';
+    }
+
+    // ทำให้ document ใน JSON ที่ตรงกับการ์ดสว่างขึ้น
+    function highlight(index, card) {
+      document.querySelectorAll(".doc, .item").forEach(function (el) { el.classList.remove("is-active"); });
+      if (index < 0) return;
+      card.classList.add("is-active");
+      var doc = document.getElementById("doc-" + index);
+      doc.classList.add("is-active");
+      doc.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+
+    // แสดง JSON ของสินค้าแต่ละชิ้นแบบมีสี
+    function buildJson() {
+      var box = document.getElementById("json");
+      var html = '<span class="k">"products"</span><span class="p">: [</span>';
+      allProducts.forEach(function (p, i) {
+        html += '<div class="doc" id="doc-' + i + '">' + colorJson(p) + (i < allProducts.length - 1 ? '<span class="p">,</span>' : "") + "</div>";
+      });
+      box.innerHTML = html + '<span class="p">]</span>';
+    }
+
+    // แยกข้อความ JSON ออกเป็นชิ้น ๆ (key, ข้อความ, ตัวเลข, true/false) แล้วใส่สีให้แต่ละชนิด
+    function colorJson(obj) {
+      var text = JSON.stringify(obj, null, 2);
+      var token = /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?|[{}\[\],]/g;
+      var out = "", last = 0, m;
+      while ((m = token.exec(text)) !== null) {
+        out += escapeHtml(text.slice(last, m.index));
+        if (m[1] && m[2]) out += '<span class="k">' + escapeHtml(m[1]) + '</span><span class="p">' + m[2] + "</span>";
+        else if (m[1]) out += '<span class="s">' + escapeHtml(m[1]) + "</span>";
+        else if (m[3]) out += '<span class="b">' + m[3] + "</span>";
+        else if (/[{}\[\],]/.test(m[0])) out += '<span class="p">' + m[0] + "</span>";
+        else out += '<span class="n">' + m[0] + "</span>";
+        last = token.lastIndex;
+      }
+      return out + escapeHtml(text.slice(last));
+    }
+
+    function showError(err) {
+      document.getElementById("shop-name").textContent = "โหลดข้อมูลไม่สำเร็จ";
+      document.querySelector(".tools").style.display = "none";
+      var msg;
+      if (location.protocol === "file:") {
+        msg = "<b>เปิดไฟล์ด้วยการดับเบิลคลิกจะดึง JSON ไม่ได้</b><br>" +
+              "เบราว์เซอร์ไม่อนุญาตให้ fetch ไฟล์จากเครื่องโดยตรง ให้เอาไฟล์ขึ้นเว็บก่อน (GitHub Pages หรือ Vercel) แล้วเปิดลิงก์ที่ได้แทน";
+      } else if (err && err.kind === "notfound") {
+        msg = "<b>หาไฟล์ data.json ไม่เจอ</b><br>" +
+              "ไฟล์ data.json ต้องอยู่ในโฟลเดอร์เดียวกับ index.html และสะกดชื่อตรงทุกตัว<br>" +
+              "ตรวจว่าอัปโหลด data.json ขึ้นไปแล้ว และไฟล์อยู่ระดับเดียวกับ index.html ไม่ได้อยู่ในโฟลเดอร์ย่อย";
+      } else if (err && err.kind === "syntax") {
+        msg = "<b>ไฟล์ data.json เขียน syntax ผิด</b><br>" +
+              "ตรวจจุดที่พบบ่อย: ลืม <code>,</code> · มี <code>,</code> เกินหลังตัวสุดท้าย · ใช้ ' แทน \" · วงเล็บ { } [ ] ปิดไม่ครบ<br>" +
+              "วางข้อความใน data.json ลงเว็บ <b>jsonlint.com</b> เพื่อหาบรรทัดที่ผิด<br>" +
+              "<small>รายละเอียด: " + escapeHtml(err.message) + "</small>";
+      } else {
+        msg = "<b>อ่าน JSON ได้ แต่ข้อมูลไม่ครบ</b><br>" +
+              "ตรวจว่ายังมี <code>\"shopName\"</code>, <code>\"owner\"</code> และ <code>\"products\": [ ... ]</code> ครบ และสะกดชื่อ key ตรงตามต้นฉบับ<br>" +
+              "<small>รายละเอียด: " + escapeHtml(err && err.message) + "</small>";
+      }
+      document.getElementById("menu").innerHTML = '<div class="error">' + msg + "</div>";
+    }
+
+    // กันไม่ให้ข้อความใน JSON กลายเป็นโค้ด HTML (เรื่อง Security!)
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    document.getElementById("search").addEventListener("input", render);
+    document.getElementById("toggle").addEventListener("click", function () {
+      var side = document.getElementById("data-side");
+      var closed = side.classList.toggle("is-closed");
+      this.setAttribute("aria-expanded", closed ? "false" : "true");
+    });
+  </script>
+</body>
+</html>
